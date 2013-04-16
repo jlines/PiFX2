@@ -10,10 +10,10 @@ function ColorWheel(){
 		speed: {
 			type: 'range',
 			name: 'Speed',
-			value: 250,
-			min: 25,
-			max: 1000,
-			step: 25
+			value: 10,
+			min: 10,
+			max: 200,
+			step: 10
 		},
 
 		saturation: {
@@ -36,6 +36,8 @@ function ColorWheel(){
 	}
 }
 
+
+
 /**
  * Return the pixel buffer with an animation applied
  * @param  {PixelBuffer} pixelBuffer Pixel Buffer representing the strand of pixels
@@ -43,7 +45,7 @@ function ColorWheel(){
  */
 ColorWheel.prototype.requestFrame = function(frame, pixelBuffer){
 	var origin = frame / this.config.speed.value * 300
-	var pixels = pixelBuffer.buffer.length / 3
+	var pixels = pixelBuffer.pixelCount
 
 	for(var i = 0; i < pixels; i++){
 		var hue = origin + i / pixels * 360

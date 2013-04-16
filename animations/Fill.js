@@ -16,15 +16,17 @@ function Fill(){
 	}
 }
 
+
 /**
  * Return the pixel buffer with an animation applied
  * @param  {PixelBuffer} pixelBuffer Pixel Buffer representing the strand of pixels
  * @return {PixelBuffer}             The modified pixel buffer
  */
 Fill.prototype.requestFrame = function(frame, pixelBuffer){
-	pixelBuffer.fillRGB(this.config.color.value.r,
-								this.config.color.value.g, 
+	pixelBuffer.fillRGB(this.config.color.value.g,
+								this.config.color.value.r,
 								this.config.color.value.b)
+
 
 	return pixelBuffer
 }

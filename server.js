@@ -6,13 +6,13 @@ var http 		= require('http'),
 	io			= require('socket.io').listen(app),
 
 	spi 		= require('spi'),
-
+    fs = require('fs'),
 	RPixel		= require('raspberrypixels'),
 
 	AvailableAnimations = require('./animationloader').load()
 	Animations	= []
 
-var PIXELS  = parseInt(process.env.PIXELS, 10) || 25
+var PIXELS  = parseInt(process.env.PIXELS, 10) || 32
 var DEVICE 	= process.env.DEVICE || '/dev/spidev0.0'
 var PORT 	= process.env.PORT || 8888
 
@@ -32,6 +32,11 @@ var ReadBuffer			= new Buffer(PIXELS * 3)
 for(var i = 0; i < AvailableAnimations.length; i++){
 	Animations.push(new AvailableAnimations[i](PIXELS))
 }
+
+
+Pixels.fillRGB(0, 0,0);
+
+var d = fs.createWriteStream("/dev/spidev0.0", {flags:'w',encoding:null,mode:0666});
 
 RenderStrip() // Begin the strip animation
 
@@ -75,15 +80,25 @@ function Strip(arr){
 	return animations
 }
 
+
 function RenderStrip(){
 	for(var i = 0; i < ActiveAnimations.length; i++){
 		Pixels = ActiveAnimations[i].requestFrame(Frame, Pixels)
 	}
 
-	Device.transfer(Pixels.buffer, Pixels.readBuffer)
+    if(ActiveAnimations.length == 0) {
+        Pixels.clear();
+    }
+
+
+    //console.log(Pixels.buffer);
+	//Device.transfer(Pixels.buffer, Pixels.readBuffer)
+    d.write(Pixels.get());
+
 
 	if(RUNNING){
 		Frame++
 		setTimeout(RenderStrip, 1000 / FPS)
 	}
 }
+
