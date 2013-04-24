@@ -16,8 +16,10 @@ var PIXELS  = parseInt(process.env.PIXELS, 10) || 32
 var DEVICE 	= process.env.DEVICE || '/dev/spidev0.0'
 var PORT 	= process.env.PORT || 8888
 
-var FPS		= 30
+var FPS		= 45
 var RUNNING	= true
+
+io.set('log level', 1); // reduce logging
 
 app.listen(parseInt(PORT, 10))
 
@@ -82,9 +84,12 @@ function Strip(arr){
 
 
 function RenderStrip(){
-	for(var i = 0; i < ActiveAnimations.length; i++){
-		Pixels = ActiveAnimations[i].requestFrame(Frame, Pixels)
-	}
+	//for(var i = 0; i < ActiveAnimations.length; i++){
+    if(ActiveAnimations.length > 0) {
+        Pixels = ActiveAnimations[ActiveAnimations.length-1].requestFrame(Frame, Pixels);
+    }
+
+	//}
 
     if(ActiveAnimations.length == 0) {
         Pixels.clear();
@@ -92,12 +97,15 @@ function RenderStrip(){
 
 
     //console.log(Pixels.buffer);
-	//Device.transfer(Pixels.buffer, Pixels.readBuffer)
-    d.write(Pixels.get());
+	Device.transfer(Pixels.buffer, Pixels.readBuffer)
+    //d.write(Pixels.get());
 
 
 	if(RUNNING){
 		Frame++
+        if(Frame > FPS * 60) {
+            Frame = 0;
+        }
 		setTimeout(RenderStrip, 1000 / FPS)
 	}
 }

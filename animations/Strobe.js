@@ -18,7 +18,7 @@ function Strobe(){
 		speed: {
 			name: 'Speed',
 			type: 'range',
-			value: 2,
+			value: 13,
 			min: 2,
 			max: 25,
 			step: 1
@@ -34,9 +34,9 @@ function Strobe(){
 Strobe.prototype.requestFrame = function(frame, pixelBuffer){
 	if(frame % this.config.speed.value == 0){
 		switch(this.config.filter.value.toLowerCase()){
-			case 'multiply':
-				pixelBuffer.multiplyRGB(255, 255, 255)
-				break;
+			//case 'multiply':
+			//	pixelBuffer.multiplyRGB(255, 255, 255)
+			//	break;
 			default:
 				pixelBuffer.fillRGB(255, 255, 255)
 				break;

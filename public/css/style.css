@@ -15,3 +15,8 @@ input[type=range].hue {
 div.well a{
   color: #fff;
 }
+
+#webcam {
+    display: block;
+    float: left;
+}
