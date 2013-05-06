@@ -42,7 +42,7 @@ Flash.prototype.requestFrame = function(frame, pixelBuffer){
 
     var speed = this.config.speed.value;
 
-    pixelBuffer.clear();
+    //pixelBuffer.clear();
 
     if(((frame+speed) % speed) == 0) {
         pixelBuffer.setColor(Math.floor(Math.random()*leds), color.toRgb());

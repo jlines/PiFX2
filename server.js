@@ -9,10 +9,11 @@ var http 		= require('http'),
     fs = require('fs'),
 	RPixel		= require('raspberrypixels'),
 
-	AvailableAnimations = require('./animationloader').load()
+	AvailableAnimations = require('./animationloader').load(),
+    weather = require("./weather"),
 	Animations	= []
 
-var PIXELS  = parseInt(process.env.PIXELS, 10) || 32
+var PIXELS  = parseInt(process.env.PIXELS, 10) || 20
 var DEVICE 	= process.env.DEVICE || '/dev/spidev0.0'
 var PORT 	= process.env.PORT || 8888
 
@@ -41,6 +42,7 @@ Pixels.fillRGB(0, 0,0);
 var d = fs.createWriteStream("/dev/spidev0.0", {flags:'w',encoding:null,mode:0666});
 
 RenderStrip() // Begin the strip animation
+weather.setAnimationList(ActiveAnimations);
 
 io.sockets.on('connection', function (socket) {
 	socket.emit('initialize', {
@@ -84,9 +86,17 @@ function Strip(arr){
 
 
 function RenderStrip(){
-	//for(var i = 0; i < ActiveAnimations.length; i++){
-    if(ActiveAnimations.length > 0) {
-        Pixels = ActiveAnimations[ActiveAnimations.length-1].requestFrame(Frame, Pixels);
+    Pixels.clear();
+
+	for(var i = 0; i < ActiveAnimations.length; i++){
+    //if(ActiveAnimations.length > 0) {
+        var animation = ActiveAnimations[i];
+        if(animation.hasOwnProperty("complete") && animation.complete == true) {
+            ActiveAnimations.splice(i,1);
+        }
+        else {
+            Pixels = animation.requestFrame(Frame, Pixels);
+        }
     }
 
 	//}
@@ -103,7 +113,7 @@ function RenderStrip(){
 
 	if(RUNNING){
 		Frame++
-        if(Frame > FPS * 60) {
+        if(Frame > FPS * 3600) {
             Frame = 0;
         }
 		setTimeout(RenderStrip, 1000 / FPS)

@@ -60,7 +60,7 @@ Sunshine.prototype.requestFrame = function(frame, pixelBuffer){
     var r1= 0,g1= 0,b1=0;
     var fade = this.config.noise.value;
     var a = 1;
-    var b = .3;
+    var b = .7;
     var c = frame/this.config.speed.value;
     var d = 0;
     //console.log(frame);

@@ -2,7 +2,7 @@ var fs		= require('fs'),
 	path	= require('path')
 
 function AnimationLoader(){
-
+    console.log("start anim")
 }
 
 AnimationLoader.load = function(){

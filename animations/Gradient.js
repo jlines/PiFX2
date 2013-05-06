@@ -27,10 +27,15 @@ function Gradient(){
             name: 'Speed',
             type: 'range',
             value: 300,
-            min: 10,
-            max: 400
+            min: 100,
+            max: 50000
         }
     }
+
+    this.frame = 0;
+    this.duration = -1;
+    this.complete = false;
+    this.rgb = false;
 }
 
 
@@ -40,14 +45,27 @@ function Gradient(){
  * @param  {PixelBuffer} pixelBuffer Pixel Buffer representing the strand of pixels
  * @return {PixelBuffer}             The modified pixel buffer
  */
-Gradient.prototype.requestFrame = function(frame, pixelBuffer){
-    var steps = this.config.speed.value;
-    var i = (frame+steps)%steps;
+Gradient.prototype.requestFrame = function(f, pixelBuffer){
+    this.frame++;
+    var steps = Number(this.config.speed.value);
+    var position = (this.frame+steps)%steps;
     var pixels = pixelBuffer.pixelCount
 
-    console.log(steps)
-    var c = CreateGradientHSL(this.config.color1.value, this.config.color2.value, steps, i);
+    //console.log(this.frame +" + "+steps+" % "+steps+"="+position);
+
+    //console.log(steps)
+    var c = null;
+    if(this.rgb == true) {
+        c = CreateGradientRGB(this.config.color1.value, this.config.color2.value, steps, position);
+    }
+    else {
+        c = CreateGradientHSL(this.config.color1.value, this.config.color2.value, steps, position);
+    }
     pixelBuffer.fillColor(c);
+
+    if(this.duration > 0 && this.frame > this.duration) {
+        this.complete = true;
+    }
 
     return pixelBuffer
 }
@@ -95,7 +113,7 @@ function CreateGradientHSV(Color1, Color2, steps, i) {
     return color({h:r1+(i*rstep),s:g1+(i*gstep),v:b1+(i*bstep)}).toRgb();
 }
 
-function CreateGradientHSL(Color1, Color2, steps, i) {
+function CreateGradientHSL(Color1, Color2, steps, pos) {
     var r1,g1,b1,r2,g2,b2;
 
     Color1 = color(Color1).toHsl();
@@ -116,7 +134,7 @@ function CreateGradientHSL(Color1, Color2, steps, i) {
 
         hstep = (360 - Math.abs(h2 - h1))/steps;
 
-        hue = h1-(i*hstep);
+        hue = h1-(pos*hstep);
 
         if(hue < 0) {
             hue = 360 + hue;
@@ -128,11 +146,11 @@ function CreateGradientHSL(Color1, Color2, steps, i) {
     }
     else {
         hstep = (h2 - h1)/steps;
-        hue = h1+(i*hstep);
+        hue = h1+(pos*hstep);
     }
 
     gstep = (g2 - g1)/steps;
     bstep = (b2 - b1)/steps;
 
-    return color({h:hue,s:g1+(i*gstep),l:b1+(i*bstep)}).toRgb();
+    return color({h:hue,s:g1+(pos*gstep),l:b1+(pos*bstep)}).toRgb();
 }
