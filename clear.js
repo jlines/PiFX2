@@ -6,7 +6,7 @@ var http 		= require('http'),
     io			= require('socket.io').listen(app),
 
     spi 		= require('spi'),
-    fs = require('fs'),
+    fs          = require('fs'),
     RPixel		= require('raspberrypixels'),
 
     AvailableAnimations = require('./animationloader').load(),
@@ -92,7 +92,7 @@ function RenderStrip(){
         //if(ActiveAnimations.length > 0) {
         var animation = ActiveAnimations[i];
         if(animation.hasOwnProperty("complete") && animation.complete == true) {
-            ActiveAnimations.splice(i,1);
+            ActiveAnimations.splice(i,1); // remove completed animations from the animation loop
         }
         else {
             Pixels = animation.requestFrame(Frame, Pixels);

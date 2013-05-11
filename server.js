@@ -17,7 +17,7 @@ var PIXELS  = parseInt(process.env.PIXELS, 10) || 20
 var DEVICE 	= process.env.DEVICE || '/dev/spidev0.0'
 var PORT 	= process.env.PORT || 8888
 
-var FPS		= 45
+var FPS		= 1
 var RUNNING	= true
 
 io.set('log level', 1); // reduce logging
@@ -42,7 +42,9 @@ Pixels.fillRGB(0, 0,0);
 var d = fs.createWriteStream("/dev/spidev0.0", {flags:'w',encoding:null,mode:0666});
 
 RenderStrip() // Begin the strip animation
+weather.setPixels(Pixels);
 weather.setAnimationList(ActiveAnimations);
+
 
 io.sockets.on('connection', function (socket) {
 	socket.emit('initialize', {
@@ -88,6 +90,7 @@ function Strip(arr){
 function RenderStrip(){
     Pixels.clear();
 
+    weather.setBackgroundFrame();
 	for(var i = 0; i < ActiveAnimations.length; i++){
     //if(ActiveAnimations.length > 0) {
         var animation = ActiveAnimations[i];
@@ -95,19 +98,21 @@ function RenderStrip(){
             ActiveAnimations.splice(i,1);
         }
         else {
-            Pixels = animation.requestFrame(Frame, Pixels);
+            animation.requestFrame(Frame, Pixels);
+
         }
     }
 
 	//}
 
-    if(ActiveAnimations.length == 0) {
+    /*if(ActiveAnimations.length == 0) {
         Pixels.clear();
-    }
+    }*/
 
 
     //console.log(Pixels.buffer);
-	Device.transfer(Pixels.buffer, Pixels.readBuffer)
+    var databuffer = Pixels.get();
+	Device.transfer(databuffer, new Buffer(databuffer.length))
     //d.write(Pixels.get());
 
 

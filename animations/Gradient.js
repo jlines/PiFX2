@@ -36,6 +36,7 @@ function Gradient(){
     this.duration = -1;
     this.complete = false;
     this.rgb = false;
+    this.color3 = null;
 }
 
 
@@ -56,12 +57,33 @@ Gradient.prototype.requestFrame = function(f, pixelBuffer){
     //console.log(steps)
     var c = null;
     if(this.rgb == true) {
-        c = CreateGradientRGB(this.config.color1.value, this.config.color2.value, steps, position);
+        if(this.color3 == null | position < steps/2) {
+            c = this.CreateGradientRGB(this.config.color1.value, this.config.color2.value, steps, position);
+
+
+        }
+        else {
+            c = this.CreateGradientRGB(this.config.color2.value, this.color3, steps, position-steps/2);
+
+        }
+
+
     }
     else {
-        c = CreateGradientHSL(this.config.color1.value, this.config.color2.value, steps, position);
+
+        if(this.color3 == null | position < steps/2) {
+            c = this.CreateGradientHSL(this.config.color1.value, this.config.color2.value, steps, position);
+
+        }
+        else {
+            c = this.CreateGradientHSL(this.config.color2.value, this.color3, steps, position-steps/2);
+        }
+
     }
+
+
     pixelBuffer.fillColor(c);
+
 
     if(this.duration > 0 && this.frame > this.duration) {
         this.complete = true;
@@ -72,7 +94,7 @@ Gradient.prototype.requestFrame = function(f, pixelBuffer){
 
 module.exports = Gradient
 
-function CreateGradientRGB(Color1, Color2, steps, i) {
+Gradient.prototype.CreateGradientRGB = function(Color1, Color2, steps, fr) {
     var r1,g1,b1,r2,g2,b2;
 
     r1 = Color1.r;
@@ -87,10 +109,20 @@ function CreateGradientRGB(Color1, Color2, steps, i) {
     gstep = (g2 - g1)/steps;
     bstep = (b2 - b1)/steps;
 
-    return {r:Math.floor(r1+(i*rstep)),g:Math.floor(g1+(i*gstep)),b:Math.floor(b1+(i*bstep))};
+
+    /*console.log("start")
+    console.log(Color1)
+    console.log(Color2)
+    console.log(steps)
+    console.log("in grad " + fr)*/
+
+    var col = {r:Math.floor(r1+(fr*rstep)),g:Math.floor(g1+(fr*gstep)),b:Math.floor(b1+(fr*bstep))};
+    console.log(col)
+
+    return col;
 }
 
-function CreateGradientHSV(Color1, Color2, steps, i) {
+Gradient.prototype.CreateGradientHSV = function(Color1, Color2, steps, i) {
     var r1,g1,b1,r2,g2,b2;
 
     Color1 = color(Color1).toHsv();
@@ -113,7 +145,7 @@ function CreateGradientHSV(Color1, Color2, steps, i) {
     return color({h:r1+(i*rstep),s:g1+(i*gstep),v:b1+(i*bstep)}).toRgb();
 }
 
-function CreateGradientHSL(Color1, Color2, steps, pos) {
+Gradient.prototype.CreateGradientHSL = function(Color1, Color2, steps, pos) {
     var r1,g1,b1,r2,g2,b2;
 
     Color1 = color(Color1).toHsl();
@@ -135,6 +167,58 @@ function CreateGradientHSL(Color1, Color2, steps, pos) {
         hstep = (360 - Math.abs(h2 - h1))/steps;
 
         hue = h1-(pos*hstep);
+
+        if(hue < 0) {
+            hue = 360 + hue;
+        }
+        else if(hue > 360) {
+            hue = hue - 360;
+        }
+        console.log(hue);
+    }
+    else {
+        hstep = (h2 - h1)/steps;
+        hue = h1+(pos*hstep);
+    }
+
+    gstep = (g2 - g1)/steps;
+    bstep = (b2 - b1)/steps;
+
+    return color({h:hue,s:g1+(pos*gstep),l:b1+(pos*bstep)}).toRgb();
+}
+
+Gradient.prototype.CreateGradientSunlight = function(steps, pos) {
+    var r1,g1,b1,r2,g2,b2;
+    var c2= {
+        r: 255,
+        g: 233,
+        b: 61
+    }; //daytime
+    var c1 = {
+        r: 0,
+        g: 16,
+        b: 94
+    }; //nighttime
+    Color1 = color(c1).toHsl();
+    Color2 = color(c2).toHsl();
+
+    h1 = Color1.h;
+    g1 = Color1.s;
+    b1 = Color1.l;
+
+    h2 = Color2.h;
+    g2 = Color2.s;
+    b2 = Color2.l;
+
+
+
+    var hstep = 0, hue=0;
+    if(true) {
+
+        hstep = (360-h1+h2)/steps;
+        //hstep = (360 - Math.abs(h2 - h1))/steps;
+
+        hue = h1+(pos*hstep);
 
         if(hue < 0) {
             hue = 360 + hue;
