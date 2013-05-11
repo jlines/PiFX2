@@ -7,22 +7,6 @@ function Sunshine(){
     this.name = "Sunshine"
 
     this.config = {
-        color1: {
-            type: 'color',
-            value: {
-                r: 75,
-                g: 0,
-                b: 0
-            }
-        },
-        color2: {
-            type: 'color',
-            value: {
-                r: 0,
-                g: 16,
-                b: 94
-            }
-        },
         speed: {
             name: 'Speed',
             type: 'range',
@@ -52,13 +36,11 @@ Sunshine.prototype.requestFrame = function(frame, pixelBuffer){
     var PI = 3.14159265;
     var pixels = pixelBuffer.pixelCount;
     var cycles = 4;
-
-    console.log(color(this.config.color1.value).toRgbString() + " " + this.config.noise.value + " "+this.config.speed.value)
-    var c2 = null;
-    var col = this.config.color1.value;
+    var col = pixelBuffer.getPixel(1).color;
     var y = 0;
     var r1= 0,g1= 0,b1=0;
     var fade = this.config.noise.value;
+
     var a = 1;
     var b = .7;
     var c = frame/this.config.speed.value;
@@ -74,10 +56,6 @@ Sunshine.prototype.requestFrame = function(frame, pixelBuffer){
             r1 = col.r + (y*fade);
             g1 = col.g + (y*fade);
             b1 = col.b + (y*fade);
-
-
-
-
         }
         else {
             //Troughs of sine wave are black
@@ -86,9 +64,9 @@ Sunshine.prototype.requestFrame = function(frame, pixelBuffer){
             g1 = col.g - (y*fade);
             b1 = col.b - (y*fade);
         }
-        c2 = color({r:r1, g:g1, b:b1});
+
         //console.log(c2.toRgbString())
-        pixelBuffer.setColor(i, c2.toRgb())
+        pixelBuffer.setColor(i, color({r:r1, g:g1, b:b1}).toRgb())
     }
 
     return pixelBuffer

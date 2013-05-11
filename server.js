@@ -42,6 +42,8 @@ Pixels.fillRGB(0, 0,0);
 var d = fs.createWriteStream("/dev/spidev0.0", {flags:'w',encoding:null,mode:0666});
 
 RenderStrip() // Begin the strip animation
+
+//give control of the animation array and image buffer to the weather tracker/controller
 weather.setPixels(Pixels);
 weather.setAnimationList(ActiveAnimations);
 
@@ -90,7 +92,6 @@ function Strip(arr){
 function RenderStrip(){
     Pixels.clear();
 
-    weather.setBackgroundFrame();
 	for(var i = 0; i < ActiveAnimations.length; i++){
     //if(ActiveAnimations.length > 0) {
         var animation = ActiveAnimations[i];

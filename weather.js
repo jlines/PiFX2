@@ -1,7 +1,8 @@
 var https = require('https');
-var grad = new (require('./animations/Gradient'));
+
 
 function WeatherTracker() {
+    var self = this;
     this.weatherData = null;
     this.trackWeather = true;
     this.animations = null;
@@ -11,6 +12,20 @@ function WeatherTracker() {
     this.ctime = new Date();
     this.ctime.setHours(19);
     this.ctime.setMinutes(2);
+
+    this.sunRiseTime = null;
+    this.sunSetTime = null;
+
+    this.weatherInterval = 3600 * 1000;
+
+    this.weatherUpdateListeners = [];
+
+    this.solarEventFlash = new (require('./animations/Gradient'));
+    this.TODAnimation = new (require("./animations/TimeOfDay"));
+    this.TODAnimation.weatherTracker = this;
+    this.windAnimation = new (require("./animations/SineWave"));
+
+
 }
 
 WeatherTracker.prototype.onStart = function() {
@@ -20,7 +35,11 @@ WeatherTracker.prototype.onStart = function() {
 WeatherTracker.prototype.setAnimationList = function(animations) {
     this.animations = animations;
 
-    //this.doFlash();
+    //start up root animation to display time of day
+
+
+    this.animations.push(this.TODAnimation);
+    this.animations.push(this.windAnimation);
 }
 
 WeatherTracker.prototype.setPixels = function(pixels) {
@@ -30,23 +49,15 @@ WeatherTracker.prototype.setPixels = function(pixels) {
 WeatherTracker.prototype.doFlash = function() {
     var self = this;
 
-    grad2 = new (require('./animations/Gradient'));
-    grad2.config.speed.value = 12;
-    grad2.config.color1.value = this.pixels.getPixel(1).color;
-    grad2.config.color2.value = {r:0,g:255,b:0};
+    this.solarEventFlash.config.speed.value = 12;
+    this.solarEventFlash.config.color1.value = this.pixels.getPixel(1).color;
+    this.solarEventFlash.config.color2.value = {r:0,g:255,b:0};
     //grad2.color3 = this.pixels.getPixel(1).color;
-    grad2.duration = 12;
-    grad2.rgb = true;
+    this.solarEventFlash.duration = 12;
+    this.solarEventFlash.complete = false;
+    this.solarEventFlash.rgb = true;
 
-
-
-    this.animations.push(grad2);
-    console.log("Pushing flash anim");
-    console.log(grad2.config.color1.value);
-    console.log(grad2.config.color2.value);
-
-    setTimeout(function() {self.doFlash();}, 15000);
-
+    this.animations.push(this.grad);
 };
 
 WeatherTracker.prototype.updateWeatherData = function() {
@@ -59,18 +70,23 @@ WeatherTracker.prototype.updateWeatherData = function() {
     callback = function(response) {
         var str = '';
 
-        //another chunk of data has been recieved, so append it to `str`
+        //another chunk of data has been received, so append it to `str`
         response.on('data', function (chunk) {
             str += chunk;
         });
 
-        //the whole response has been recieved, so we just print it out here
+        //the whole response has been received, so we just print it out here
         response.on('end', function () {
             var data = JSON.parse(str);
             self.weatherData = data;
+            self.sunRiseTime = new Date(self.weatherData.daily.data[0].sunriseTime * 1000);
+            self.sunSetTime = new Date(self.weatherData.daily.data[0].sunsetTime * 1000);
+
             if(self.trackWeather) {
-                setTimeout(function() {self.updateWeatherData();}, 3600 * 1000);
+                setTimeout(function() {self.updateWeatherData();}, this.weatherInterval);
             }
+
+            this.onWeatherUpdated();
         });
     }
 
@@ -79,55 +95,28 @@ WeatherTracker.prototype.updateWeatherData = function() {
     https.request(options, callback).end();
 };
 
+
+WeatherTracker.prototype.onWeatherUpdated = function(info) {
+    this.checkForSolarEvent();
+
+};
+
+WeatherTracker.prototype.checkForSolarEvent = function() {
+    var ctime = new Date(), self = this;
+    if(this.isDayTime(ctime) & this.sunSetTime-ctime < this.weatherInterval) {
+        setTimeout(function() {self.doFlash();}, this.sunSetTime-ctime);
+    }
+    else if(!this.isDayTime(ctime) & this.sunRiseTime > ctime & this.sunRiseTime-ctime < this.weatherInterval) {
+        setTimeout(function() {self.doFlash();}, this.sunRiseTime-ctime);
+    }
+};
+
+WeatherTracker.prototype.isDaytime = function(currentTime) {
+    return (currentTime > this.sunRiseTime && currentTime < this.sunSetTime);
+};
+
 WeatherTracker.prototype.setBackgroundFrame = function() {
-    if(this.weatherData == null) {
-        return;
 
-    }
-
-
-
-    var currentTime = new Date();
-    var sunRise = new Date(this.weatherData.daily.data[0].sunriseTime * 1000);
-
-    var sunSet = new Date(this.weatherData.daily.data[0].sunsetTime * 1000);
-
-    var solarPadding = 30*60*1000;
-    var step = 0;
-
-    if((cdiff = Math.abs(currentTime - sunRise)) < solarPadding) {
-        //console.log("within sunrise threshold");
-        if(currentTime < sunRise) {
-            step = solarPadding - cdiff;
-        }
-        else {
-            step = solarPadding + cdiff;
-        }
-        step = Math.floor((step/(solarPadding*2)) * 1000);
-    }
-    else if((cdiff = Math.abs(currentTime - sunSet)) < solarPadding) {
-        //console.log("within sunset threshold");
-        if(currentTime < sunSet) {
-            step = solarPadding - cdiff;
-        }
-        else {
-            step = solarPadding + cdiff;
-        }
-        step = 1000 - Math.floor((step/(solarPadding*2)) * 1000);
-
-    }
-    else if(currentTime > sunRise && currentTime < sunSet) {
-        //console.log("its the daytime");
-        step = 1000;
-    }
-    else {
-        //console.log("its the nighttime");
-        step = 0;
-    }
-
-
-    //console.log("step : " + step + " / 1000");
-    this.pixels.fillColor(grad.CreateGradientSunlight(1000, step));
 };
 
 module.exports = new WeatherTracker()
