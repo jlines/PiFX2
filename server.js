@@ -17,7 +17,7 @@ var PIXELS  = parseInt(process.env.PIXELS, 10) || 20
 var DEVICE 	= process.env.DEVICE || '/dev/spidev0.0'
 var PORT 	= process.env.PORT || 8888
 
-var FPS		= 1
+var FPS		= 60
 var RUNNING	= true
 
 io.set('log level', 1); // reduce logging
@@ -88,6 +88,24 @@ function Strip(arr){
 	return animations
 }
 
+MonitorAnimationArray()
+function MonitorAnimationArray() {
+    console.log("Current animations..")
+    for(var i = 0; i < ActiveAnimations.length; i++){
+        //if(ActiveAnimations.length > 0) {
+        var animation = ActiveAnimations[i];
+        if(animation == null) {
+            console.log("null")
+        }
+        else {
+            console.log(animation.name);
+        }
+    }
+    console.log("---------------------------------")
+
+    setTimeout(MonitorAnimationArray, 30000)
+}
+
 
 function RenderStrip(){
     Pixels.clear();
@@ -95,12 +113,11 @@ function RenderStrip(){
 	for(var i = 0; i < ActiveAnimations.length; i++){
     //if(ActiveAnimations.length > 0) {
         var animation = ActiveAnimations[i];
-        if(animation.hasOwnProperty("complete") && animation.complete == true) {
-            ActiveAnimations.splice(i,1);
-        }
-        else {
-            animation.requestFrame(Frame, Pixels);
+        animation.requestFrame(Frame, Pixels);
 
+        if(animation != null & animation.hasOwnProperty("complete") & animation.complete == true) {
+		    console.log("Removing animation " + i + " " + ActiveAnimations);
+            ActiveAnimations.splice(i,1);
         }
     }
 

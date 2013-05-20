@@ -13,16 +13,15 @@ function WeatherTracker() {
     this.ctime.setHours(19);
     this.ctime.setMinutes(2);
 
-    this.sunRiseTime = null;
-    this.sunSetTime = null;
+    this.sunriseTime = null;
+    this.sunsetTime = null;
 
     this.weatherInterval = 3600 * 1000;
 
     this.weatherUpdateListeners = [];
 
-    this.solarEventFlash = new (require('./animations/Gradient'));
+    this.solarEventFlash = new (require('./animations/Flash'));
     this.TODAnimation = new (require("./animations/TimeOfDay"));
-    this.TODAnimation.weatherTracker = this;
     this.windAnimation = new (require("./animations/SineWave"));
 
 
@@ -50,14 +49,13 @@ WeatherTracker.prototype.doFlash = function() {
     var self = this;
 
     this.solarEventFlash.config.speed.value = 12;
-    this.solarEventFlash.config.color1.value = this.pixels.getPixel(1).color;
     this.solarEventFlash.config.color2.value = {r:0,g:255,b:0};
     //grad2.color3 = this.pixels.getPixel(1).color;
     this.solarEventFlash.duration = 12;
     this.solarEventFlash.complete = false;
     this.solarEventFlash.rgb = true;
 
-    this.animations.push(this.grad);
+    //this.animations.push(this.grad);
 };
 
 WeatherTracker.prototype.updateWeatherData = function() {
@@ -79,14 +77,17 @@ WeatherTracker.prototype.updateWeatherData = function() {
         response.on('end', function () {
             var data = JSON.parse(str);
             self.weatherData = data;
-            self.sunRiseTime = new Date(self.weatherData.daily.data[0].sunriseTime * 1000);
-            self.sunSetTime = new Date(self.weatherData.daily.data[0].sunsetTime * 1000);
+            self.sunriseTime = new Date(self.weatherData.daily.data[0].sunriseTime * 1000);
+            self.sunsetTime = new Date(self.weatherData.daily.data[0].sunsetTime * 1000);
+            self.TODAnimation.sunriseTime = self.sunriseTime;
+            self.TODAnimation.sunsetTime = self.sunsetTime;
+
 
             if(self.trackWeather) {
-                setTimeout(function() {self.updateWeatherData();}, this.weatherInterval);
+                setTimeout(function() {self.updateWeatherData();}, self.weatherInterval);
             }
 
-            this.onWeatherUpdated();
+            self.onWeatherUpdated();
         });
     }
 
@@ -103,20 +104,17 @@ WeatherTracker.prototype.onWeatherUpdated = function(info) {
 
 WeatherTracker.prototype.checkForSolarEvent = function() {
     var ctime = new Date(), self = this;
-    if(this.isDayTime(ctime) & this.sunSetTime-ctime < this.weatherInterval) {
-        setTimeout(function() {self.doFlash();}, this.sunSetTime-ctime);
+    if(this.isDaytime(ctime) & this.sunretTime-ctime < this.weatherInterval) {
+        setTimeout(function() {self.doFlash();}, this.sunsetTime-ctime);
     }
-    else if(!this.isDayTime(ctime) & this.sunRiseTime > ctime & this.sunRiseTime-ctime < this.weatherInterval) {
-        setTimeout(function() {self.doFlash();}, this.sunRiseTime-ctime);
+    else if(!this.isDaytime(ctime) & this.sunriseTime > ctime & this.sunriseTime-ctime < this.weatherInterval) {
+        setTimeout(function() {self.doFlash();}, this.sunriseTime-ctime);
     }
 };
 
 WeatherTracker.prototype.isDaytime = function(currentTime) {
-    return (currentTime > this.sunRiseTime && currentTime < this.sunSetTime);
+    return (currentTime > this.sunriseTime && currentTime < this.sunsetTime);
 };
 
-WeatherTracker.prototype.setBackgroundFrame = function() {
-
-};
 
 module.exports = new WeatherTracker()

@@ -24,6 +24,10 @@ function Flash(){
             step: 1
         }
     }
+
+    this.duration = -1;
+    this.frame = 1;
+    this.complete = false;
 }
 
 /**
@@ -32,6 +36,9 @@ function Flash(){
  * @return {PixelBuffer}             The modified pixel buffer
  */
 Flash.prototype.requestFrame = function(frame, pixelBuffer){
+    if(this.complete) {
+        return;
+    }
     var leds = pixelBuffer.pixelCount;
 
     var color = tinycolor({
@@ -42,13 +49,17 @@ Flash.prototype.requestFrame = function(frame, pixelBuffer){
 
     var speed = this.config.speed.value;
 
+
     //pixelBuffer.clear();
 
-    if(((frame+speed) % speed) == 0) {
+    if(((this.frame+speed) % speed) == 0) {
         pixelBuffer.setColor(Math.floor(Math.random()*leds), color.toRgb());
     }
 
-	return pixelBuffer
+    this.frame++;
+    if(this.duration != -1 & this.frame > this.duration) {
+        this.complete = true;
+    }
 }
 
 module.exports = Flash

@@ -5,9 +5,12 @@ var color = require('tinycolor2')
  */
 function TimeOfDay(){
     this.name = "TimeOfDay"
-    this.weatherTracker = null;
+    this.sunriseTime = null;
+    this.sunsetTime = null;
 
     this.config = {};
+    this.currentHue = 0;
+    this.currentTime = new Date("May 19, 2013 18:55:00");
 }
 
 
@@ -18,17 +21,19 @@ function TimeOfDay(){
  * @return {PixelBuffer}             The modified pixel buffer
  */
 TimeOfDay.prototype.requestFrame = function(frame, pixelBuffer){
-    if(this.weatherTracker.weatherData == null) {
+    if(this.sunriseTime == null) {
         return;
     }
 
-    var currentTime = new Date();
+    this.currentTime += 1000;
+    var currentTime = this.currentTime;
+    //currentTime = new Date("May 19, 2013 19:42:00");
     var solarPadding = 30*60*1000;
     var step = 0;
 
-    if((cdiff = Math.abs(currentTime - this.weatherTracker.sunRiseTime)) < solarPadding) {
+    if((cdiff = Math.abs(currentTime - this.sunriseTime)) < solarPadding) {
         //console.log("within sunrise threshold");
-        if(currentTime < this.weatherTracker.sunRiseTime) {
+        if(currentTime < this.sunriseTime) {
             step = solarPadding - cdiff;
         }
         else {
@@ -36,9 +41,9 @@ TimeOfDay.prototype.requestFrame = function(frame, pixelBuffer){
         }
         step = Math.floor((step/(solarPadding*2)) * 1000);
     }
-    else if((cdiff = Math.abs(currentTime - this.weatherTracker.sunSetTime)) < solarPadding) {
+    else if((cdiff = Math.abs(currentTime - this.sunsetTime)) < solarPadding) {
         //console.log("within sunset threshold");
-        if(currentTime < this.weatherTracker.sunSetTime) {
+        if(currentTime < this.sunsetTime) {
             step = solarPadding - cdiff;
         }
         else {
@@ -47,7 +52,7 @@ TimeOfDay.prototype.requestFrame = function(frame, pixelBuffer){
         step = 1000 - Math.floor((step/(solarPadding*2)) * 1000);
 
     }
-    else if(this.weatherTracker.isDaytime(currentTime)) {
+    else if(this.isDaytime(currentTime)) {
         //console.log("its the daytime");
         step = 1000;
     }
@@ -61,8 +66,12 @@ TimeOfDay.prototype.requestFrame = function(frame, pixelBuffer){
     pixelBuffer.fillColor(this.CreateGradientSunlight(1000, step));
 }
 
+TimeOfDay.prototype.isDaytime = function(currentTime) {
+    return (currentTime > this.sunriseTime && currentTime < this.sunsetTime);
+};
+
 TimeOfDay.prototype.CreateGradientSunlight = function(steps, pos) {
-    var r1,g1,b1,r2,g2,b2;
+    var h1,s1,l1,h2,s2,l2;
 
     var c1 = {
         r: 0,
@@ -79,19 +88,19 @@ TimeOfDay.prototype.CreateGradientSunlight = function(steps, pos) {
     Color2 = color(c2).toHsl();
 
     h1 = Color1.h;
-    g1 = Color1.s;
-    b1 = Color1.l;
+    s1 = Color1.s;
+    l1 = Color1.l;
 
     h2 = Color2.h;
-    g2 = Color2.s;
-    b2 = Color2.l;
+    s2 = Color2.s;
+    l2 = Color2.l;
 
 
 
     var hstep = 0, hue=0;
     if(true) {
 
-        hstep = (360-h1+h2)/steps;
+        hstep = ((360-h1)+h2)/steps;
         //hstep = (360 - Math.abs(h2 - h1))/steps;
 
         hue = h1+(pos*hstep);
@@ -109,10 +118,15 @@ TimeOfDay.prototype.CreateGradientSunlight = function(steps, pos) {
         hue = h1+(pos*hstep);
     }
 
-    gstep = (g2 - g1)/steps;
-    bstep = (b2 - b1)/steps;
+    sstep = (s2 - s1)/steps;
+    lstep = (l2 - l1)/steps;
 
-    return color({h:hue,s:g1+(pos*gstep),l:b1+(pos*bstep)}).toRgb();
+    if(hue != this.currentHue) {
+        this.currentHue = hue;
+        //console.log("Time of day Hue : " + this.currentHue);
+    }
+
+    return color({h:hue,s:s1+(pos*sstep),l:l1+(pos*lstep)}).toRgb();
 }
 
 
