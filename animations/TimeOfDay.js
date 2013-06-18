@@ -25,10 +25,10 @@ TimeOfDay.prototype.requestFrame = function(frame, pixelBuffer){
         return;
     }
 
-    this.currentTime += 1000;
-    var currentTime = this.currentTime;
     //currentTime = new Date("May 19, 2013 19:42:00");
     var solarPadding = 30*60*1000;
+    var offset = 20*60*1000;
+    var currentTime = new Date(new Date() + offset);
     var step = 0;
 
     if((cdiff = Math.abs(currentTime - this.sunriseTime)) < solarPadding) {

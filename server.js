@@ -2,29 +2,34 @@ var http 		= require('http'),
 
 	handler		= require('./static'),
 
-	app			= http.createServer(handler),
-	io			= require('socket.io').listen(app),
+	//app			= http.createServer(handler),
+	//io			= require('socket.io').listen(app),
 
 	spi 		= require('spi'),
     fs = require('fs'),
 	RPixel		= require('raspberrypixels'),
+    logger = require('log4js').getLogger(),
 
 	AvailableAnimations = require('./animationloader').load(),
     weather = require("./weather"),
 	Animations	= []
 
-var PIXELS  = parseInt(process.env.PIXELS, 10) || 20
+var PIXELS  = parseInt(process.env.PIXELS, 10) || 32
 var DEVICE 	= process.env.DEVICE || '/dev/spidev0.0'
 var PORT 	= process.env.PORT || 8888
 
 var FPS		= 60
 var RUNNING	= true
 
-io.set('log level', 1); // reduce logging
+//io.set('log level', 1); // reduce logging
 
-app.listen(parseInt(PORT, 10))
+//app.listen(parseInt(PORT, 10))
 
-console.log("HTTP server listening on port " + PORT)
+//console.log("HTTP server listening on port " + PORT)
+
+process.on('uncaughtException', function (err) {
+  console.log(err);
+})
 
 var Device				= new spi.Spi(DEVICE, function(){});
 var Pixels 				= new RPixel.PixelBuffer(PIXELS)
@@ -48,7 +53,7 @@ weather.setPixels(Pixels);
 weather.setAnimationList(ActiveAnimations);
 
 
-io.sockets.on('connection', function (socket) {
+/*io.sockets.on('connection', function (socket) {
 	socket.emit('initialize', {
 		animations: Strip(Animations),
 		activeAnimations: Strip(ActiveAnimations)
@@ -76,7 +81,7 @@ io.sockets.on('connection', function (socket) {
 
 		socket.broadcast.emit('status', RUNNING)
 	})
-})
+})*/
 
 
 function Strip(arr){
@@ -88,23 +93,26 @@ function Strip(arr){
 	return animations
 }
 
-MonitorAnimationArray()
+//MonitorAnimationArray()
 function MonitorAnimationArray() {
-    console.log("Current animations..")
+    logger.debug("Current animations..")
     for(var i = 0; i < ActiveAnimations.length; i++){
         //if(ActiveAnimations.length > 0) {
         var animation = ActiveAnimations[i];
         if(animation == null) {
-            console.log("null")
+            logger.debug("null");
+
         }
         else {
             console.log(animation.name);
         }
     }
-    console.log("---------------------------------")
+    logger.debug("---------------------------------")
 
     setTimeout(MonitorAnimationArray, 30000)
 }
+
+
 
 
 function RenderStrip(){
@@ -116,7 +124,7 @@ function RenderStrip(){
         animation.requestFrame(Frame, Pixels);
 
         if(animation != null & animation.hasOwnProperty("complete") & animation.complete == true) {
-		    console.log("Removing animation " + i + " " + ActiveAnimations);
+		    //console.log("Removing animation " + i + " " + ActiveAnimations);
             ActiveAnimations.splice(i,1);
         }
     }

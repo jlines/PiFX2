@@ -10,9 +10,9 @@ function SineWave(){
         speed: {
             name: 'Speed',
             type: 'range',
-            value: 10,
-            min: 0,
-            max: 100
+            value: 1,
+            min: 1,
+            max: 99
         },
         noise: {
             name: 'Noise',
@@ -33,7 +33,6 @@ function SineWave(){
  * @return {PixelBuffer}             The modified pixel buffer
  */
 SineWave.prototype.requestFrame = function(frame, pixelBuffer){
-    var PI = 3.14159265;
     var pixels = pixelBuffer.pixelCount;
     var cycles = 4;
     var col = pixelBuffer.getPixel(1).color;
@@ -44,19 +43,21 @@ SineWave.prototype.requestFrame = function(frame, pixelBuffer){
 
     var a = 1;
     var b = .7;
-    var c = frame/this.config.speed.value;
+
+    if(this.config.speed.value > 99) {
+        this.config.speed.value = 99;
+    }
+
+    var c = frame/(100-this.config.speed.value);
     var d = 0;
 
     for(i=0; i<pixels; i++) {
         y = a*Math.sin(b*i + c)+d;
         //console.log("speed" +b +" phase"+ c  + " y" + y)
 
-
         r1 = col.r + (y*fade);
         g1 = col.g + (y*fade);
         b1 = col.b + (y*fade);
-
-
 
         //console.log(c2.toRgbString())
         pixelBuffer.setColor(i, color({r:r1, g:g1, b:b1}).toRgb())
@@ -68,4 +69,3 @@ SineWave.prototype.requestFrame = function(frame, pixelBuffer){
 }
 
 module.exports = SineWave
-
