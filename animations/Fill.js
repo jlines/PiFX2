@@ -14,6 +14,11 @@ function Fill(){
 			}
 		}
 	}
+
+
+    this.frame = 0;
+    this.duration = -1;
+    this.complete = false;
 }
 
 

@@ -1,5 +1,6 @@
 var https = require('https');
 var logger = require('log4js').getLogger();
+var AnimationSnow = require('./animations/Snow');
 
 function WeatherTracker() {
     var self = this;
@@ -16,33 +17,34 @@ function WeatherTracker() {
     this.sunriseTime = null;
     this.sunsetTime = null;
 
-    this.weatherInterval = 1800z * 1000;
+    this.weatherInterval = 1800 * 1000;
 
     this.weatherUpdateListeners = [];
 
-    this.solarEventFlash = new (require('./animations/Flash'));
-    this.TODAnimation = new (require("./animations/TimeOfDay"));
-    this.windAnimation = new (require("./animations/SineWave"));
+
 }
 
 WeatherTracker.prototype.onStart = function() {
     this.updateWeatherData();
 }
 
-WeatherTracker.prototype.setAnimationList = function(animations) {
+WeatherTracker.prototype.initialize = function(pixelBuffer, animations) {
     var self = this;
     this.animations = animations;
+    this.pixels = pixelBuffer;
+
+    this.solarEventFlash = new (require('./animations/Flash'));
+    this.TODAnimation = new (require("./animations/TimeOfDay"));
+    this.windAnimation = new (require("./animations/SineWave"));
+    this.visibilityAnimation = new AnimationSnow(this.pixels);
 
     //start up root animation to display time of day
-
-
     this.animations.push(this.TODAnimation);
     this.animations.push(this.windAnimation);
+    this.animations.push(this.visibilityAnimation);
 }
 
-WeatherTracker.prototype.setPixels = function(pixels) {
-    this.pixels = pixels;
-}
+
 
 WeatherTracker.prototype.doFlash = function() {
     var self = this;
@@ -80,24 +82,26 @@ WeatherTracker.prototype.updateWeatherData = function() {
         response.on('end', function () {
 
             var data = JSON.parse(str);
-            logger.debug(data);
+            //logger.debug(data);
             self.weatherData = data;
             self.sunriseTime = new Date(self.weatherData.daily.data[0].sunriseTime * 1000);
             self.sunsetTime = new Date(self.weatherData.daily.data[0].sunsetTime * 1000);
             self.windSpeed = self.weatherData.currently.windSpeed;
+            self.cloudCover = self.weatherData.currently.cloudCover;
 
             self.TODAnimation.sunriseTime = self.sunriseTime;
             self.TODAnimation.sunsetTime = self.sunsetTime;
 
             logger.debug("sunrise " + self.sunriseTime);
             logger.debug("sunset " + self.sunsetTime);
-            logger.debug("windspeed " + self.weatherData.currently.windSpeed);
+            logger.debug("windspeed " + self.windSpeed);
+            logger.debug("cloudCover " + self.cloudCover);
 
             if(self.trackWeather) {
                 setTimeout(function() {self.updateWeatherData();}, self.weatherInterval);
             }
 
-            self.windAnimation.config.speed.value = Math.floor(((self.windSpeed/30)*100)+30);
+
             self.onWeatherUpdated();
         });
 
@@ -119,6 +123,11 @@ WeatherTracker.prototype.updateWeatherData = function() {
 
 
 WeatherTracker.prototype.onWeatherUpdated = function(info) {
+    var self = this;
+    //self.windSpeed = 20;
+    self.windAnimation.config.speed.value = Math.floor(((self.windSpeed/25)*100)+30);
+    self.visibilityAnimation.cloudCover = self.cloudCover;
+
     this.checkForSolarEvent();
 
 };

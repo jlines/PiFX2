@@ -27,9 +27,9 @@ var RUNNING	= true
 
 //console.log("HTTP server listening on port " + PORT)
 
-process.on('uncaughtException', function (err) {
+/*process.on('uncaughtException', function (err) {
   console.log(err);
-})
+})*/
 
 var Device				= new spi.Spi(DEVICE, function(){});
 var Pixels 				= new RPixel.PixelBuffer(PIXELS)
@@ -49,9 +49,7 @@ var d = fs.createWriteStream("/dev/spidev0.0", {flags:'w',encoding:null,mode:066
 RenderStrip() // Begin the strip animation
 
 //give control of the animation array and image buffer to the weather tracker/controller
-weather.setPixels(Pixels);
-weather.setAnimationList(ActiveAnimations);
-
+weather.initialize(Pixels, ActiveAnimations);
 
 /*io.sockets.on('connection', function (socket) {
 	socket.emit('initialize', {
@@ -107,7 +105,7 @@ function MonitorAnimationArray() {
             console.log(animation.name);
         }
     }
-    logger.debug("---------------------------------")
+    logger.debug("---------------------------------");
 
     setTimeout(MonitorAnimationArray, 30000)
 }
