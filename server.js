@@ -13,7 +13,7 @@ var http 		= require('http'),
     weather = require("./weather"),
 	Animations	= []
 
-var PIXELS  = parseInt(process.env.PIXELS, 10) || 20
+var PIXELS  = parseInt(process.env.PIXELS, 10) || 32
 var DEVICE 	= process.env.DEVICE || '/dev/spidev0.0'
 var PORT 	= process.env.PORT || 8888
 
