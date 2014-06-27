@@ -52,7 +52,7 @@ WeatherTracker.prototype.doFlash = function() {
     this.solarEventFlash.config.speed.value = 1;
     this.solarEventFlash.config.color.value = {r:0,g:255,b:0};
     //grad2.color3 = this.pixels.getPixel(1).color;
-    this.solarEventFlash.duration = 20;
+    this.solarEventFlash.duration = 300;
     this.solarEventFlash.frame = 0;
     this.solarEventFlash.complete = false;
 
@@ -64,11 +64,10 @@ WeatherTracker.prototype.updateWeatherData = function() {
     var self = this;
     var options = {
         host: 'api.forecast.io',
-        path: '/forecast/bcab40cb8d1e3653ee5bff18ba8e6f01/33.504213,-111.911083'
+        path: '/forecast/bcab40cb8d1e3653ee5bff18ba8e6f01/33.351806,-111.915582'
     };
 
-    options.path = "/forecast/bcab40cb8d1e3653ee5bff18ba8e6f01/41.618795,-81.199094";
-
+    //options.path = "/forecast/bcab40cb8d1e3653ee5bff18ba8e6f01/41.618795,-81.199094";
     var request = https.request(options,function(response) {
         var str = '';
         //debugger;
@@ -78,11 +77,26 @@ WeatherTracker.prototype.updateWeatherData = function() {
             str += chunk;
         });
 
+	    response.on('error', function(e) {
+	        logger.error("error retrieving weather data " + JSON.stringify(e));
+        });
+
         //the whole response has been received, so we just print it out here
         response.on('end', function () {
 
-            var data = JSON.parse(str);
-            //logger.debug(data);
+            var data = "";
+
+            try {
+                data = JSON.parse(str);
+            }
+            catch(e) {
+                logger.error("Unable to parse " + str);
+		if(self.trackWeather) {
+                	setTimeout(function() {self.updateWeatherData();}, self.weatherInterval);
+            	}
+                return;
+            }
+
             self.weatherData = data;
             self.sunriseTime = new Date(self.weatherData.daily.data[0].sunriseTime * 1000);
             self.sunsetTime = new Date(self.weatherData.daily.data[0].sunsetTime * 1000);

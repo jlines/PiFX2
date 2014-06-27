@@ -29,7 +29,7 @@ function Snow(pixelBuffer){
 }
 
 //multiplier range 1:2
-Snow.prototype.multiplier = function() {return 1 + this.cloudCover;}
+Snow.prototype.multiplier = function() {return this.cloudCover;}
 //saturation range 0:1
 Snow.prototype.maxSaturation = function() {return 1 - this.cloudCover;}
 
