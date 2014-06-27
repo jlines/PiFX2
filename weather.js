@@ -64,10 +64,11 @@ WeatherTracker.prototype.updateWeatherData = function() {
     var self = this;
     var options = {
         host: 'api.forecast.io',
-        path: '/forecast/bcab40cb8d1e3653ee5bff18ba8e6f01/33.351806,-111.915582'
+        path: '/forecast/bcab40cb8d1e3653ee5bff18ba8e6f01/33.352613,-111.916405'
     };
 
     //options.path = "/forecast/bcab40cb8d1e3653ee5bff18ba8e6f01/41.618795,-81.199094";
+
     var request = https.request(options,function(response) {
         var str = '';
         //debugger;
