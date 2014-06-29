@@ -1,16 +1,11 @@
 "use strict";
 var http 		= require('http'),
-
 	handler		= require('./static'),
-
-	//app			= http.createServer(handler),
-	//io			= require('socket.io').listen(app),
-
-	spi 		= require('spi'),
+    spi 		= require('spi'),
     fs = require('fs'),
+    _ = require('lodash'),
 	RPixel		= require('raspberrypixels'),
     logger = require('log4js').getLogger(),
-
 	AvailableAnimations = require('./animationloader').load(),
     weather = require("./weather"),
 	Animations	= [];
@@ -18,27 +13,13 @@ var http 		= require('http'),
 var PIXELS  = parseInt(process.env.PIXELS, 10) || 32;
 var DEVICE 	= process.env.DEVICE || '/dev/spidev0.0';
 var PORT 	= process.env.PORT || 8888;
-
 var FPS		= 60;
 var RUNNING	= true;
-
-//io.set('log level', 1); // reduce logging
-
-//app.listen(parseInt(PORT, 10))
-
-//console.log("HTTP server listening on port " + PORT)
-
-/*process.on('uncaughtException', function (err) {
-  console.log(err);
-})*/
-
 var Device				= new spi.Spi(DEVICE, function(){});
 var Pixels 				= new RPixel.PixelBuffer(PIXELS);
 var ActiveAnimations 	= [];
 var Frame 				= 0;
 var ReadBuffer			= new Buffer(PIXELS * 3);
-
-
 
 function Strip(arr){
 	var animations = JSON.stringify(arr.slice());
@@ -72,23 +53,13 @@ function MonitorAnimationArray() {
 function RenderStrip(){
     Pixels.clear();
 
-	for(var i = 0; i < ActiveAnimations.length; i++){
-    //if(ActiveAnimations.length > 0) {
-        var animation = ActiveAnimations[i];
-        animation.requestFrame(Frame, Pixels);
-
-        if(animation !== null & animation.hasOwnProperty("complete") & animation.complete === true) {
+    _.each(ActiveAnimations, function(animation) { 
+    	animation.requestFrame(Frame, Pixels); 
+    	if(animation !== null & animation.hasOwnProperty("complete") & animation.complete === true) {
 		    //console.log("Removing animation " + i + " " + ActiveAnimations);
             ActiveAnimations.splice(i,1);
         }
-    }
-
-	//}
-
-    /*if(ActiveAnimations.length == 0) {
-        Pixels.clear();
-    }*/
-
+    });
 
     //console.log(Pixels.buffer);
     var databuffer = Pixels.get();
