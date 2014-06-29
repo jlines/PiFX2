@@ -139,8 +139,12 @@ WeatherTracker.prototype.updateWeatherData = function() {
 
 WeatherTracker.prototype.onWeatherUpdated = function(info) {
     var self = this;
-    //self.windSpeed = 20;
-    self.windAnimation.config.speed.value = Math.floor(((self.windSpeed/25)*100)+30);
+    //self.windSpeed = 25;
+    //self.cloudCover = .5;
+    var wind = Math.floor(((self.windSpeed/25)*100)+30);
+    wind = Math.floor((self.windSpeed * 2) + 85);
+    logger.info("Wind aNim: " + wind);
+    self.windAnimation.config.speed.value = wind; 
     self.visibilityAnimation.cloudCover = self.cloudCover;
 
     this.checkForSolarEvent();
