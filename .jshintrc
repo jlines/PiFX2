@@ -1,0 +1,16 @@
+/**
+ * Created by jasonlines on 6/3/14.
+ */
+{
+  "strict":true,
+  "node":true,
+  "globals"   : {
+    /* MOCHA */
+    "describe"   : false,
+    "it"         : false,
+    "before"     : false,
+    "beforeEach" : false,
+    "after"      : false,
+    "afterEach"  : false
+  }
+}
