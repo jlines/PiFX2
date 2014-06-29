@@ -1,3 +1,4 @@
+"use strict";
 var https = require('https');
 var logger = require('log4js').getLogger();
 var AnimationSnow = require('./animations/Snow');
@@ -26,23 +27,23 @@ function WeatherTracker() {
 
 WeatherTracker.prototype.onStart = function() {
     this.updateWeatherData();
-}
+};
 
 WeatherTracker.prototype.initialize = function(pixelBuffer, animations) {
     var self = this;
     this.animations = animations;
     this.pixels = pixelBuffer;
 
-    this.solarEventFlash = new (require('./animations/Flash'));
-    this.TODAnimation = new (require("./animations/TimeOfDay"));
-    this.windAnimation = new (require("./animations/SineWave"));
+    this.solarEventFlash = new (require('./animations/Flash'))();
+    this.TODAnimation = new (require("./animations/TimeOfDay"))();
+    this.windAnimation = new (require("./animations/SineWave"))();
     this.visibilityAnimation = new AnimationSnow(this.pixels);
 
     //start up root animation to display time of day
     this.animations.push(this.TODAnimation);
     this.animations.push(this.windAnimation);
     this.animations.push(this.visibilityAnimation);
-}
+};
 
 
 
@@ -168,4 +169,4 @@ WeatherTracker.prototype.isDaytime = function(currentTime) {
 };
 
 
-module.exports = new WeatherTracker()
+module.exports = new WeatherTracker();
